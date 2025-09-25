@@ -13,6 +13,9 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 
+# Test folders
+/coverage
+
 # dotenv environment variable files
 .env
 .env.development
