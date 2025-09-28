@@ -1,9 +1,10 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import envValidation from './config/env.validation';
 import appConfig from './config/app.config';
+import { RequestLoggerMiddleware } from './middlewares/request-logger.middleware';
 
 @Module({
   imports: [ConfigModule.forRoot({
@@ -15,4 +16,11 @@ import appConfig from './config/app.config';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(RequestLoggerMiddleware)
+      .forRoutes('*')
+  }
+
+}
