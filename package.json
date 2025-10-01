@@ -21,19 +21,25 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@nestjs/bullmq": "^11.0.3",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.1",
+    "@nestjs/event-emitter": "^3.0.1",
     "@nestjs/jwt": "^11.0.0",
     "@nestjs/mongoose": "^11.0.3",
     "@nestjs/platform-express": "^11.0.1",
+    "@nestjs/schedule": "^6.0.1",
     "bcrypt": "^6.0.0",
+    "bullmq": "^5.59.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
     "joi": "^18.0.1",
     "mongoose": "^8.18.2",
+    "nodemailer": "^7.0.6",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
+    "serpapi": "^2.2.1",
     "uuid": "^13.0.0"
   },
   "devDependencies": {
@@ -45,6 +51,7 @@
     "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
     "@types/node": "^22.10.7",
+    "@types/nodemailer": "^7.0.2",
     "@types/supertest": "^6.0.2",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",

@@ -21,7 +21,7 @@ export function appCreate(app: INestApplication): string | undefined {
   app.enableCors();
 
   const configService = app.get(ConfigService)
-  const port = configService.get<string>('appConfig.PORT')
+  const port = configService.get<string>('appConfig.port')
 
   return port
 }
