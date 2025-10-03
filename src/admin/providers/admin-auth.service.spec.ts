@@ -5,6 +5,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { JwtService } from '@nestjs/jwt';
 import { SendMailProvider } from './send-mail.provider';
 import * as crypto from 'crypto';
+import { UnauthorizedException } from '@nestjs/common';
 
 jest.mock('../../utils/res-util', () => ({
   successResponse: jest.fn((data) => ({
@@ -110,6 +111,17 @@ describe('AdminAuthService', () => {
       });
     })
 
-    it('should throw UnAuthorized Exception for Non-admin email', () => { })
+    it('should throw Unauthorized Exception for Non-admin email', async () => {
+      const nonAdminEmail = 'non-admin@example.com'
+
+      try {
+        await service.sendMagicLink(nonAdminEmail)
+      } catch (err) {
+        expect(err).toBeInstanceOf(UnauthorizedException)
+      }
+
+      expect(configService.get).toHaveBeenCalledWith('ADMIN_EMAIL')
+      expect(eventEmitter.emit).not.toHaveBeenCalled();
+    })
   })
 })
