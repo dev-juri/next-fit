@@ -1,11 +1,20 @@
-import { Controller, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
 import { AdminService } from './providers/admin.service';
-import { AdminAuthGuard } from 'src/guards/admin-auth.guard';
+import { CreateMagicLinkDto } from './dtos/create-magic-link.dto';
 
 @Controller('admin')
-@UseGuards(AdminAuthGuard)
 export class AdminController {
     constructor(
-        private readonly adminService: AdminService
+        private readonly adminAuthService: AdminService
     ) { }
+
+    @Post('/auth')
+    async sendMagicLink(@Body() createMagicLinkDto: CreateMagicLinkDto) {
+        return this.adminAuthService.sendMagicLink(createMagicLinkDto.email);
+    }
+
+    @Get('/auth/verify')
+    async verifyMagicLink(@Query('token') token: string) {
+        return this.adminAuthService.verifyMagicLink(token);
+    }
 }
