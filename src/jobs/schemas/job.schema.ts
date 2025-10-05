@@ -15,7 +15,7 @@ export type JobDocument = HydratedDocument<Job>
     },
 })
 export class Job {
-    @Prop({ required: true })
+    @Prop({ required: true, unique: true })
     title: string;
 }
 

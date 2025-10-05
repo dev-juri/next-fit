@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { JobsController } from './jobs.controller';
 import { MongooseModule } from '@nestjs/mongoose';
-import { JobPost, JobPostSchema } from 'src/admin/schemas/job-post.schema';
-import { JobSource, JobSourceSchema } from 'src/admin/schemas/job-source.schema';
-import { Job, JobSchema } from 'src/admin/schemas/job.schema';
+import { JobPost, JobPostSchema } from './schemas/job-post.schema';
+import { JobSource, JobSourceSchema } from 'src/jobs/schemas/job-source.schema';
+import { Job, JobSchema } from './schemas/job.schema';
 import { AccessTokenGuard } from 'src/guards/access-token.guard';
 import { AdminAuthGuard } from 'src/guards/admin-auth.guard';
 import { JobsService } from './providers/jobs.service';
