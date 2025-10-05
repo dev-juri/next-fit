@@ -1,5 +1,6 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
 import { AdminAuthService } from './providers/admin-auth.service';
+import { CreateMagicLinkDto } from './dtos/create-magic-link.dto';
 
 @Controller('admin/auth')
 export class AdminAuthController {
@@ -8,8 +9,8 @@ export class AdminAuthController {
     ) { }
 
     @Post()
-    async sendMagicLink(@Body('email') email: string) {
-        return this.adminAuthService.sendMagicLink(email);
+    async sendMagicLink(@Body() createMagicLinkDto: CreateMagicLinkDto) {
+        return this.adminAuthService.sendMagicLink(createMagicLinkDto.email);
     }
 
     @Get('verify')
