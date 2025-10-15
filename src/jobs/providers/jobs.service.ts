@@ -1,4 +1,4 @@
-import { Injectable, UnprocessableEntityException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { JobSource, JobSourceDocument } from '../schemas/job-source.schema';
@@ -6,6 +6,12 @@ import { CreateJobSourceDto } from '../dtos/create-job-source.dto';
 import { CreateJobTitleDto } from '../dtos/create-job-title.dto';
 import { Job, JobDocument } from '../schemas/job.schema';
 import { successResponse } from 'src/utils/res-util';
+import { FetchJobsParam } from '../dtos/fetch-jobs-param.dto';
+import { JobPost, JobPostDocument } from '../schemas/job-post.schema';
+import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
+import { ScrapeJobsDto } from '../dtos/scrape-jobs.dto';
+import type { ScrapeJobsPayload } from '../events/scrape-job.type';
+import { SerpProvider } from './serp.provider';
 
 @Injectable()
 export class JobsService {
@@ -14,7 +20,14 @@ export class JobsService {
         private readonly jobSourceModel: Model<JobSourceDocument>,
 
         @InjectModel(Job.name)
-        private readonly jobModel: Model<JobDocument>
+        private readonly jobModel: Model<JobDocument>,
+
+        @InjectModel(JobPost.name)
+        private readonly jobPostModel: Model<JobPostDocument>,
+
+        private readonly eventEmitter: EventEmitter2,
+
+        private readonly serpProvider: SerpProvider
     ) { }
 
     async createJobTitle(createJobTitleDto: CreateJobTitleDto) {
@@ -39,7 +52,39 @@ export class JobsService {
 
         const newJobSource = await this.jobSourceModel.create(createJobSourceDto);
         await newJobSource.save()
-        
+
         return successResponse({ message: "Job source added successfully." })
     }
+    async scrapeJobs(scrapeJobsDto: ScrapeJobsDto) {
+        const job = await this.jobModel.findById(scrapeJobsDto.jobId)
+        if (!job) {
+            throw new NotFoundException('Job title not found')
+        }
+
+        const sources = await this.jobSourceModel.find()
+        const sourceUrlsString = sources
+            .map(source => `site:${source.url}`)
+            .join(' | ');
+
+        this.eventEmitter.emit('scrape.jobs', { jobTitle: job.title, sourceString: sourceUrlsString } as ScrapeJobsPayload)
+
+        return successResponse({ message: "Scraping in progress" })
+    }
+
+    async fetchJobs(fetchJobsParam: FetchJobsParam) {
+        const pipeline = [
+
+        ]
+    }
+
+    @OnEvent('scrape.jobs')
+    async handleJobScrapingEvent(payload: ScrapeJobsPayload) {
+        let sourceString: string = ""
+        if(payload.sourceString.length > 0) {
+            sourceString.concat(`| ${payload.sourceString}`)
+        }
+        const organicResults = await this.serpProvider.scrapeJob(payload.jobTitle, sourceString)
+        // SAVE THE JOB POSTS
+    }
+
 }

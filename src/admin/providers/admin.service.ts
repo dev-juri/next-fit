@@ -5,7 +5,7 @@ import { JwtService } from '@nestjs/jwt';
 import * as crypto from 'crypto';
 import { successResponse } from '../../utils/res-util';
 import { SendMailProvider } from './send-mail.provider';
-import { type SendEmailPayload } from '../interfaces/send-email.interface';
+import { type SendEmailPayload } from '../events/send-email.interface';
 
 @Injectable()
 export class AdminService {
@@ -18,12 +18,11 @@ export class AdminService {
 
         private readonly sendMailProvider: SendMailProvider
     ) {
-        // Clean up expired tokens every 10 minutes
         setInterval(() => this.cleanupExpiredTokens(), 10 * 60 * 1000);
     }
 
     async sendMagicLink(email: string) {
-        const adminEmail = this.configService.get('ADMIN_EMAIL');
+        const adminEmail = this.configService.get('appConfig.adminEmail');
 
         if (email !== adminEmail) {
             throw new UnauthorizedException('Unauthorized email');
@@ -76,7 +75,7 @@ export class AdminService {
      * Handle all emitted events below
      */
     @OnEvent('send.email')
-    handleSendEmailEvent(payload: SendEmailPayload) {
+    async handleSendEmailEvent(payload: SendEmailPayload) {
         console.log(payload)
         this.sendMailProvider.sendEmail(payload.email, payload.token)
     }

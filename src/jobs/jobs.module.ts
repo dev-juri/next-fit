@@ -9,10 +9,13 @@ import { AdminAuthGuard } from 'src/guards/admin-auth.guard';
 import { JobsService } from './providers/jobs.service';
 import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
+import { SerpProvider } from './providers/serp.provider';
 import jwtConfig from 'src/config/jwt.config';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
   imports: [
+    HttpModule,
     ConfigModule.forFeature(jwtConfig),
     JwtModule.registerAsync(jwtConfig.asProvider()),
     MongooseModule.forFeature([
@@ -30,6 +33,6 @@ import jwtConfig from 'src/config/jwt.config';
       },
     ])],
   controllers: [JobsController],
-  providers: [AccessTokenGuard, AdminAuthGuard, JobsService]
+  providers: [AccessTokenGuard, AdminAuthGuard, JobsService, SerpProvider]
 })
 export class JobsModule { }
