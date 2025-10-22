@@ -12,6 +12,7 @@ import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { ScrapeJobsDto } from '../dtos/scrape-jobs.dto';
 import type { ScrapeJobsPayload } from '../events/scrape-job.type';
 import { SerpProvider } from './serp.provider';
+import { prepareJobPostsForBulkWrite } from '../utils/serp-transformer-utils';
 
 @Injectable()
 export class JobsService {
@@ -55,6 +56,7 @@ export class JobsService {
 
         return successResponse({ message: "Job source added successfully." })
     }
+
     async scrapeJobs(scrapeJobsDto: ScrapeJobsDto) {
         const job = await this.jobModel.findById(scrapeJobsDto.jobId)
         if (!job) {
@@ -66,7 +68,13 @@ export class JobsService {
             .map(source => `site:${source.url}`)
             .join(' | ');
 
-        this.eventEmitter.emit('scrape.jobs', { jobTitle: job.title, sourceString: sourceUrlsString } as ScrapeJobsPayload)
+        this.eventEmitter.emit('scrape.jobs',
+            {
+                jobTitle: job.title,
+                sourceString: sourceUrlsString,
+                jobTag: job.title
+            } as ScrapeJobsPayload
+        )
 
         return successResponse({ message: "Scraping in progress" })
     }
@@ -77,14 +85,72 @@ export class JobsService {
         ]
     }
 
+    async initNightlyScrape() {
+        console.log('Starting nightly job scraping...');
+
+        const allJobs = await this.jobModel.find();
+        const allSources = await this.jobSourceModel.find();
+
+        if (allJobs.length === 0) {
+            return;
+        }
+
+        const sourceUrlsString = allSources
+            .map(source => `site:${source.url}`)
+            .join(' | ');
+
+        const scrapePromises = allJobs.map(job =>
+            this.processSingleJobScrape(job.title, sourceUrlsString, job.title)
+        );
+        const scrapeResults = await Promise.all(scrapePromises);
+
+        const totalSaved = scrapeResults.reduce((sum, count) => sum + count, 0);
+
+        console.log(`Nightly scrape complete. Total job posts upserted: ${totalSaved}`);
+    }
+
+    private async processSingleJobScrape(
+        jobTitle: string,
+        sourceUrlsString: string,
+        jobTag: string
+    ): Promise<number> {
+        try {
+            const fullQuery = `${jobTitle} | ${sourceUrlsString}`;
+
+            const organicResults = await this.serpProvider.scrapeJob(jobTitle, fullQuery, 'qdr:d1');
+
+            if (organicResults.length === 0) {
+                console.log(`No results found for job: ${jobTitle}`);
+                return 0;
+            }
+
+            const formattedJobPosts = prepareJobPostsForBulkWrite(organicResults, jobTag);
+
+            const writeResult = await this.jobPostModel.bulkWrite(formattedJobPosts);
+
+            const savedCount = writeResult.upsertedCount + writeResult.modifiedCount;
+            console.log(`Scrape for "${jobTitle}" finished. Upserted ${savedCount} posts.`);
+
+            return savedCount;
+
+        } catch (error) {
+            console.error(`Error scraping job title "${jobTitle}":`, error);
+            return 0;
+        }
+    }
+
+    // Events
     @OnEvent('scrape.jobs')
     async handleJobScrapingEvent(payload: ScrapeJobsPayload) {
         let sourceString: string = ""
-        if(payload.sourceString.length > 0) {
+        if (payload.sourceString.length > 0) {
             sourceString.concat(`| ${payload.sourceString}`)
         }
         const organicResults = await this.serpProvider.scrapeJob(payload.jobTitle, sourceString)
-        // SAVE THE JOB POSTS
+
+        const formattedJobPosts = prepareJobPostsForBulkWrite(organicResults, payload.jobTag)
+
+        await this.jobPostModel.bulkWrite(formattedJobPosts);
     }
 
 }

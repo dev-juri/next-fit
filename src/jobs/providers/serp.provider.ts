@@ -2,7 +2,7 @@ import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as serpapi from 'serpapi'
-import { IOrganicResult, ISerpPagination } from '../interfaces/serp-api.interfaces';
+import { IOrganicResult } from '../interfaces/serp-api.interfaces';
 import { AxiosResponse } from 'axios';
 import { firstValueFrom } from 'rxjs';
 import * as https from 'https';
@@ -34,7 +34,7 @@ export class SerpProvider {
         }
     }
 
-    async scrapeJob(jobTitle: string, source: string): Promise<IOrganicResult[]> {
+    async scrapeJob(jobTitle: string, source: string, tbs: string = 'qdr:m1'): Promise<IOrganicResult[]> {
         const allOrganicResults: IOrganicResult[] = [];
 
         const baseQuery = `${source} "${jobTitle}"`;
@@ -44,10 +44,7 @@ export class SerpProvider {
             engine: "google",
             q: `site:careers.*.com | inurl:*/careers | inurl:*/work-with-us | inurl:*/join-us | inurl:*/opportunities ${baseQuery}`,
             google_domain: "google.com",
-            safe: "off",
-            device: "desktop",
-            filter: "0",
-
+            tbs: tbs
         };
 
         const firstPageResponse = await serpapi.getJson(baseParams);

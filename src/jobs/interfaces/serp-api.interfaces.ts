@@ -11,10 +11,3 @@ export interface IOrganicResult {
     snippet_highlighted_words: string[]
     source: string
 }
-
-export interface ISerpPagination {
-    current: number,
-    next_link: string;
-    next: string;
-    other_pages: Record<string, string>
-}

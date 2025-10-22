@@ -12,6 +12,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { SerpProvider } from './providers/serp.provider';
 import jwtConfig from 'src/config/jwt.config';
 import { HttpModule } from '@nestjs/axios';
+import { NightlyScrapeService } from './nightly-scrape.service';
 
 @Module({
   imports: [
@@ -33,6 +34,6 @@ import { HttpModule } from '@nestjs/axios';
       },
     ])],
   controllers: [JobsController],
-  providers: [AccessTokenGuard, AdminAuthGuard, JobsService, SerpProvider]
+  providers: [AccessTokenGuard, AdminAuthGuard, JobsService, SerpProvider, NightlyScrapeService]
 })
 export class JobsModule { }
