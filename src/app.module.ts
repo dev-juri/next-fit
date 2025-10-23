@@ -11,21 +11,28 @@ import { JobsModule } from './jobs/jobs.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import databaseConfig from './config/database.config';
 import { ScheduleModule } from '@nestjs/schedule';
+import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({
   imports: [
     AdminModule,
+    JobsModule,
+
+    CacheModule.register({
+      isGlobal: true
+    }),
+
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
       load: [appConfig, databaseConfig],
       validationOptions: envValidation
     }),
+
     EventEmitterModule.forRoot({
       delimiter: '.'
     }),
-    JobsModule,
-    ScheduleModule.forRoot(),
+
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -33,6 +40,8 @@ import { ScheduleModule } from '@nestjs/schedule';
         uri: configService.get<string>('database.uri'),
       }),
     }),
+
+    ScheduleModule.forRoot(),
   ],
   controllers: [AppController],
   providers: [AppService],

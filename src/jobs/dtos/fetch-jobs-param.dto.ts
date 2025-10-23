@@ -13,3 +13,9 @@ export class FetchJobsParam {
     @IsOptional()
     limit?: number = 10;
 }
+
+export interface FetchJobsOptions {
+    currentUsage: number; 
+    rateLimitKey: string;
+    maxLimit: number
+}

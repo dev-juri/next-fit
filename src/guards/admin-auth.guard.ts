@@ -38,16 +38,16 @@ export class AdminAuthGuard implements CanActivate {
 
     // loop through guards, fire canActivate
     for (const instance of guards) {
-      const canActivate = await Promise.resolve(
-        instance.canActivate(context),
-      ).catch((err) => {
-        err;
-      });
-      if (canActivate) {
-        return true;
+      try {
+        const canActivate = await instance.canActivate(context);
+        if (!canActivate) {
+          throw new UnauthorizedException();
+        }
+      } catch (err) {
+        throw err;
       }
     }
 
-    throw error;
+    return true;
   }
 }

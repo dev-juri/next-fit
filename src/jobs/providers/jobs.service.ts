@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
+import { Injectable, Inject, NotFoundException, UnprocessableEntityException, ForbiddenException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { JobSource, JobSourceDocument } from '../schemas/job-source.schema';
@@ -6,13 +6,15 @@ import { CreateJobSourceDto } from '../dtos/create-job-source.dto';
 import { CreateJobTitleDto } from '../dtos/create-job-title.dto';
 import { Job, JobDocument } from '../schemas/job.schema';
 import { successResponse } from 'src/utils/res-util';
-import { FetchJobsParam } from '../dtos/fetch-jobs-param.dto';
+import { FetchJobsParam, FetchJobsOptions } from '../dtos/fetch-jobs-param.dto';
 import { JobPost, JobPostDocument } from '../schemas/job-post.schema';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { ScrapeJobsDto } from '../dtos/scrape-jobs.dto';
 import type { ScrapeJobsPayload } from '../events/scrape-job.type';
 import { SerpProvider } from './serp.provider';
 import { prepareJobPostsForBulkWrite } from '../utils/serp-transformer-utils';
+import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
+import { TTL_SECONDS } from '../utils/rate-limit-utils';
 
 @Injectable()
 export class JobsService {
@@ -28,7 +30,9 @@ export class JobsService {
 
         private readonly eventEmitter: EventEmitter2,
 
-        private readonly serpProvider: SerpProvider
+        private readonly serpProvider: SerpProvider,
+
+        @Inject(CACHE_MANAGER) private cacheManager: Cache,
     ) { }
 
     async createJobTitle(createJobTitleDto: CreateJobTitleDto) {
@@ -79,8 +83,17 @@ export class JobsService {
         return successResponse({ message: "Scraping in progress" })
     }
 
-    async fetchJobs(fetchJobsParam: FetchJobsParam) {
-        const { tag, limit = 10, cursor } = fetchJobsParam;
+    async fetchJobs(fetchJobsParam: FetchJobsParam, opts: FetchJobsOptions) {
+        let { tag, limit = 10, cursor } = fetchJobsParam;
+
+        const cachedLimitCount: number = (await this.cacheManager.get(opts.rateLimitKey)) || 0
+        limit = opts.maxLimit - cachedLimitCount
+
+        if (limit <= 0) {
+            throw new ForbiddenException(
+                `Rate limit exceeded, please try again tomorrow.`
+            );
+        }
 
         const query: any = {};
 
@@ -102,10 +115,24 @@ export class JobsService {
             ? jobPosts[jobPosts.length - 1]._id.toString()
             : null;
 
+        await this.incrementJobUsage(
+            opts.rateLimitKey,
+            jobPosts.length,
+            opts.currentUsage
+        );
+
         return {
             data: jobPosts,
             next: nextCursor
         };
+    }
+
+    async incrementJobUsage(key: string, jobsReturned: number, currentUsage: number): Promise<void> {
+        if (jobsReturned > 0) {
+            const newUsage = currentUsage + jobsReturned;
+            await this.cacheManager.set(key, newUsage, TTL_SECONDS);
+            console.log(newUsage)
+        }
     }
 
     async initNightlyScrape() {
