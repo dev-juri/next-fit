@@ -3,7 +3,17 @@ import { HydratedDocument } from "mongoose";
 
 export type JobPostDocument = HydratedDocument<JobPost>
 
-@Schema()
+@Schema({
+    timestamps: true,
+    toJSON: {
+        virtuals: true,
+        transform: (doc: any, ret: any) => {
+            ret.id = ret._id;
+            delete ret._id;
+            return ret;
+        },
+    },
+})
 export class JobPost {
     @Prop({ required: true })
     title: string;

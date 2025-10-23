@@ -80,9 +80,32 @@ export class JobsService {
     }
 
     async fetchJobs(fetchJobsParam: FetchJobsParam) {
-        const pipeline = [
+        const { tag, limit = 10, cursor } = fetchJobsParam;
 
-        ]
+        const query: any = {};
+
+        if (tag) {
+            query.tag = tag;
+        }
+
+        if (cursor) {
+            query._id = { $gt: cursor };
+        }
+
+        const jobPosts = await this.jobPostModel
+            .find(query)
+            .sort({ _id: 1 })
+            .limit(limit)
+            .exec();
+
+        const nextCursor = jobPosts.length > 0
+            ? jobPosts[jobPosts.length - 1]._id.toString()
+            : null;
+
+        return {
+            data: jobPosts,
+            next: nextCursor
+        };
     }
 
     async initNightlyScrape() {
