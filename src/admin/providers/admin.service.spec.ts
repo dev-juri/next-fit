@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { AdminAuthService } from './admin.service';
+import { AdminService } from './admin.service';
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { JwtService } from '@nestjs/jwt';
@@ -17,7 +17,7 @@ jest.mock('../../utils/res-util', () => ({
 jest.mock('crypto');
 
 describe('AdminAuthService', () => {
-  let service: AdminAuthService;
+  let service: AdminService;
   let jwtService: JwtService;
   let configService: ConfigService;
   let eventEmitter: EventEmitter2;
@@ -45,7 +45,7 @@ describe('AdminAuthService', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        AdminAuthService,
+        AdminService,
         {
           provide: JwtService,
           useValue: mockJwtService,
@@ -64,7 +64,7 @@ describe('AdminAuthService', () => {
         },],
     }).compile();
 
-    service = module.get<AdminAuthService>(AdminAuthService);
+    service = module.get<AdminService>(AdminService);
     jwtService = module.get<JwtService>(JwtService);
     configService = module.get<ConfigService>(ConfigService)
     eventEmitter = module.get<EventEmitter2>(EventEmitter2)
