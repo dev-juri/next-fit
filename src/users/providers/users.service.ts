@@ -5,7 +5,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { LoginUserDto } from '../dto/login-user.dto';
 import * as bcrypt from 'bcrypt'
-import { successResponse } from 'src/utils/res-util';
+import { successResponse } from '../../utils/res-util';
 import { JwtService } from '@nestjs/jwt';
 
 @Injectable()

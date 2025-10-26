@@ -1,8 +1,8 @@
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { CanActivate, ExecutionContext, Injectable, ForbiddenException, Inject } from '@nestjs/common';
 import { Request } from 'express';
-import { LIMITS } from 'src/jobs/utils/rate-limit-utils';
-import { CURRENT_USAGE_KEY, MAX_LIMIT, RATE_LIMIT_KEY } from 'src/utils/constants';
+import { LIMITS } from '../jobs/utils/rate-limit-utils';
+import { CURRENT_USAGE_KEY, MAX_LIMIT, RATE_LIMIT_KEY } from '../utils/constants';
 import { AccessTokenGuard } from './access-token.guard';
 
 interface AuthUser {

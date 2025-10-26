@@ -2,16 +2,16 @@ import { Body, Controller, Get, HttpCode, HttpStatus, Post, Query, Req, UseGuard
 import { JobsService } from './providers/jobs.service';
 import { CreateJobSourceDto } from './dtos/create-job-source.dto';
 import { CreateJobTitleDto } from './dtos/create-job-title.dto';
-import { AdminAuthGuard } from 'src/guards/admin-auth.guard';
+import { AdminAuthGuard } from '../guards/admin-auth.guard';
 import { FetchJobsParam } from './dtos/fetch-jobs-param.dto';
-import { AdminAuth } from 'src/decorators/auth.decorator';
-import { AuthType } from 'src/utils/auth-type.enum';
+import { AdminAuth } from '../decorators/auth.decorator';
+import { AuthType } from '../utils/auth-type.enum';
 import { ScrapeJobsDto } from './dtos/scrape-jobs.dto';
-import { JobLimitGuard } from 'src/guards/job-limit.guard';
-import { ActiveUser } from 'src/decorators/active-user.decorator';
+import { JobLimitGuard } from '../guards/job-limit.guard';
+import { ActiveUser } from '../decorators/active-user.decorator';
 import { CURRENT_USAGE_KEY, MAX_LIMIT, RATE_LIMIT_KEY } from '../utils/constants';
 import { LIMITS } from './utils/rate-limit-utils';
-import { successResponse } from 'src/utils/res-util';
+import { successResponse } from '../utils/res-util';
 
 @Controller('jobs')
 @UseGuards(AdminAuthGuard)

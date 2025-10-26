@@ -5,7 +5,7 @@ import { JobSource, JobSourceDocument } from '../schemas/job-source.schema';
 import { CreateJobSourceDto } from '../dtos/create-job-source.dto';
 import { CreateJobTitleDto } from '../dtos/create-job-title.dto';
 import { Job, JobDocument } from '../schemas/job.schema';
-import { successResponse } from 'src/utils/res-util';
+import { successResponse } from '../../utils/res-util';
 import { FetchJobsParam, FetchJobsOptions } from '../dtos/fetch-jobs-param.dto';
 import { JobPost, JobPostDocument } from '../schemas/job-post.schema';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
