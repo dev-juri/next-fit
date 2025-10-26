@@ -42,8 +42,9 @@ export class JobsController {
     async fetchJobs(
         @Query() fetchJobsParam: FetchJobsParam,
         @Req() req: Request,
-        @ActiveUser() user?: { id: string, tier: 'FREE' | 'PAID' }
+        @ActiveUser() user?: { sub: string, tier: 'FREE' | 'PAID' }
     ) {
+        console.log(user)
 
         let enforcedLimit: number;
         let canReturnCursor: boolean = false;
@@ -53,6 +54,7 @@ export class JobsController {
         } else if (user.tier === 'PAID') {
             const requestedLimit = fetchJobsParam.limit || 10;
             enforcedLimit = Math.min(requestedLimit, 10);
+            console.log(enforcedLimit)
             canReturnCursor = true;
         } else {
             enforcedLimit = LIMITS.FREE;
@@ -63,14 +65,14 @@ export class JobsController {
             limit: enforcedLimit,
         }, { currentUsage: req[CURRENT_USAGE_KEY], rateLimitKey: req[RATE_LIMIT_KEY], maxLimit: req[MAX_LIMIT] });
 
-        const response: { data: any[]; next?: string } = {
-            data: jobsResult.data,
+        const response: { jobs: any[]; next?: string } = {
+            jobs: jobsResult.data,
         };
 
         if (canReturnCursor && jobsResult.next) {
             response.next = jobsResult.next;
         }
 
-        return successResponse({ message: "Jobs fetched successfully", data: response.data });
+        return successResponse({ message: "Jobs fetched successfully", data: response });
     }
 }

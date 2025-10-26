@@ -87,7 +87,9 @@ export class JobsService {
         let { tag, limit = 10, cursor } = fetchJobsParam;
 
         const cachedLimitCount: number = (await this.cacheManager.get(opts.rateLimitKey)) || 0
-        limit = opts.maxLimit - cachedLimitCount
+        limit = Math.min(opts.maxLimit - cachedLimitCount, limit)
+
+        console.log(limit)
 
         if (limit <= 0) {
             throw new ForbiddenException(
@@ -131,7 +133,6 @@ export class JobsService {
         if (jobsReturned > 0) {
             const newUsage = currentUsage + jobsReturned;
             await this.cacheManager.set(key, newUsage, TTL_SECONDS);
-            console.log(newUsage)
         }
     }
 

@@ -19,9 +19,7 @@ export class UsersService {
     ) { }
 
     async signUp(createUserDto: CreateUserDto) {
-        let user;
-
-        user = await this.userModel.findOne({
+        const user = await this.userModel.findOne({
             email: createUserDto.email
         })
 
@@ -33,7 +31,10 @@ export class UsersService {
         const hashedPassword = await bcrypt.hash(createUserDto.password, saltRounds);
         createUserDto.password = hashedPassword
 
-        user = await this.userModel.create(createUserDto)
+        await this.userModel.create({
+            passwordHash: hashedPassword,
+            ...createUserDto
+        })
 
         return successResponse({ message: "User created successfully" })
     }

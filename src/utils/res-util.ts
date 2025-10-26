@@ -6,14 +6,14 @@ export function successResponse({
     data?: any;
 }): IResponse {
     return {
-        success: true,
+        status: "success",
         message,
         data,
     };
 }
 
 export interface IResponse {
-    success: boolean;
+    status: string;
     message: string;
     data?: any;
 }

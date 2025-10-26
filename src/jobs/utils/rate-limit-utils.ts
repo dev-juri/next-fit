@@ -4,4 +4,4 @@ export const LIMITS = {
     PAID: Infinity,
 };
 
-export const TTL_SECONDS = 60 * 60 * 24;
+export const TTL_SECONDS = 60 * 60 * 24 * 1000;

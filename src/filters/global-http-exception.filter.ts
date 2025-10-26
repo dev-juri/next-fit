@@ -53,6 +53,6 @@ export class GlobalHttpExceptionFilter implements ExceptionFilter {
           ? exceptionResponse.message[0]
           : exceptionResponse?.message || 'An error occurred';
 
-    return response.status(status).json({ success: false, message: message });
+    return response.status(status).json({ status: 'error', message: message });
   }
 }
