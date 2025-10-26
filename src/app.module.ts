@@ -12,6 +12,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import databaseConfig from './config/database.config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { CacheModule } from '@nestjs/cache-manager';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -42,6 +43,8 @@ import { CacheModule } from '@nestjs/cache-manager';
     }),
 
     ScheduleModule.forRoot(),
+
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService],
