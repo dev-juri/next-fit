@@ -36,9 +36,9 @@ export class JobsService {
     ) { }
 
     async createJobTitle(createJobTitleDto: CreateJobTitleDto) {
-        const title = createJobTitleDto.title.split(' ')[0]
+        const title = createJobTitleDto.title
 
-        const existingJobTitle = await this.jobModel.find({ where: { title } })
+        const existingJobTitle = await this.jobModel.findOne({ where: { title } })
         if (existingJobTitle) {
             throw new UnprocessableEntityException('Job title already exists.')
         }
@@ -50,7 +50,7 @@ export class JobsService {
     }
 
     async createJobSource(createJobSourceDto: CreateJobSourceDto) {
-        const existingJobSource = await this.jobSourceModel.find({ where: { url: createJobSourceDto.url } })
+        const existingJobSource = await this.jobSourceModel.findOne({ where: { url: createJobSourceDto.url } })
         if (existingJobSource) {
             throw new UnprocessableEntityException('Job source already exists.')
         }

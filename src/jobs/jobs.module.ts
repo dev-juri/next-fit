@@ -2,18 +2,18 @@ import { Module } from '@nestjs/common';
 import { JobsController } from './jobs.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { JobPost, JobPostSchema } from './schemas/job-post.schema';
-import { JobSource, JobSourceSchema } from 'src/jobs/schemas/job-source.schema';
+import { JobSource, JobSourceSchema } from '../jobs/schemas/job-source.schema';
 import { Job, JobSchema } from './schemas/job.schema';
-import { AccessTokenGuard } from 'src/guards/access-token.guard';
-import { AdminAuthGuard } from 'src/guards/admin-auth.guard';
+import { AccessTokenGuard } from '../guards/access-token.guard';
+import { AdminAuthGuard } from '../guards/admin-auth.guard';
 import { JobsService } from './providers/jobs.service';
 import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { SerpProvider } from './providers/serp.provider';
-import jwtConfig from 'src/config/jwt.config';
+import jwtConfig from '../config/jwt.config';
 import { HttpModule } from '@nestjs/axios';
 import { NightlyScrapeService } from './nightly-scrape.service';
-import { JobLimitGuard } from 'src/guards/job-limit.guard';
+import { JobLimitGuard } from '../guards/job-limit.guard';
 
 @Module({
   imports: [

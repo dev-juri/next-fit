@@ -10,7 +10,7 @@ export class NightlyScrapeService {
         private readonly jobsService: JobsService
     ) {}
 
-    @Cron('0 0 9 * * *', {
+    @Cron('0 31 6 * * *', {
         name: NightlyScrapeService.name,
         timeZone: 'Africa/Lagos',
         waitForCompletion: true

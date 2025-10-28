@@ -1,8 +1,8 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
-import { AuthType } from 'src/utils/auth-type.enum';
+import { AuthType } from '../utils/auth-type.enum';
 import { AccessTokenGuard } from './access-token.guard';
 import { Reflector } from '@nestjs/core';
-import { ADMIN_AUTH_TYPE_KEY } from 'src/utils/constants';
+import { ADMIN_AUTH_TYPE_KEY } from '../utils/constants';
 
 @Injectable()
 export class AdminAuthGuard implements CanActivate {

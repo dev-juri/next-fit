@@ -1,5 +1,5 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
-import { REQUEST_ADMIN_KEY } from 'src/utils/constants';
+import { REQUEST_ADMIN_KEY } from '../utils/constants';
 
 export const ActiveAdmin = createParamDecorator(
     (field: string | undefined, ctx: ExecutionContext) => {
