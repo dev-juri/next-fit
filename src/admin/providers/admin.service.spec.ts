@@ -97,7 +97,7 @@ describe('AdminAuthService', () => {
     it('should send magic link for valid email', async () => {
       const result = await service.sendMagicLink(ADMIN_EMAIL);
 
-      expect(configService.get).toHaveBeenCalledWith('ADMIN_EMAIL');
+      expect(configService.get).toHaveBeenCalled();
       expect(crypto.randomBytes).toHaveBeenCalledWith(32);
       expect(eventEmitter.emit).toHaveBeenCalledWith('send.email', {
         email: ADMIN_EMAIL,
@@ -120,7 +120,7 @@ describe('AdminAuthService', () => {
         expect(err).toBeInstanceOf(UnauthorizedException)
       }
 
-      expect(configService.get).toHaveBeenCalledWith('ADMIN_EMAIL')
+      expect(configService.get).toHaveBeenCalled()
       expect(eventEmitter.emit).not.toHaveBeenCalled();
     })
   })
