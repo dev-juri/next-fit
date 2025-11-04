@@ -1,13 +1,10 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { GlobalHttpExceptionFilter } from './filters/global-http-exception.filter';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 export function appCreate(app: INestApplication): string | undefined {
 
   const configService = app.get(ConfigService)
-
-  app.useGlobalFilters(new GlobalHttpExceptionFilter())
 
   app.useGlobalPipes(
     new ValidationPipe({

@@ -4,7 +4,6 @@ import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import envValidation from './config/env.validation';
 import appConfig from './config/app.config';
-import { RequestLoggerMiddleware } from './middlewares/request-logger.middleware';
 import { AdminModule } from './admin/admin.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { JobsModule } from './jobs/jobs.module';
@@ -13,6 +12,9 @@ import databaseConfig from './config/database.config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { CacheModule } from '@nestjs/cache-manager';
 import { UsersModule } from './users/users.module';
+import { TracingModule } from './tracing/tracing.module';
+import { GlobalHttpExceptionFilter } from './filters/global-http-exception.filter';
+import { APP_FILTER } from '@nestjs/core';
 
 @Module({
   imports: [
@@ -45,15 +47,15 @@ import { UsersModule } from './users/users.module';
     ScheduleModule.forRoot(),
 
     UsersModule,
+
+    TracingModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService,
+    {
+      provide: APP_FILTER,
+      useClass: GlobalHttpExceptionFilter,
+    },
+  ],
 })
-export class AppModule implements NestModule {
-
-  configure(consumer: MiddlewareConsumer) {
-    consumer.apply(RequestLoggerMiddleware)
-      .forRoutes('*')
-  }
-
-}
+export class AppModule { }

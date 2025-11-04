@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { JwtService } from '@nestjs/jwt';
@@ -6,12 +6,16 @@ import * as crypto from 'crypto';
 import { successResponse } from '../../utils/res-util';
 import { SendMailProvider } from './send-mail.provider';
 import { type SendEmailPayload } from '../events/send-email.interface';
+import { RequestContextService } from '../../tracing/request-context.service';
 
 @Injectable()
 export class AdminService {
+    private readonly logger = new Logger(AdminService.name)
+
     private magicTokens = new Map<string, { email: string; expiresAt: Date }>();
 
     constructor(
+        private readonly requestContext: RequestContextService,
         private readonly jwtService: JwtService,
         private readonly configService: ConfigService,
         private readonly eventEmitter: EventEmitter2,
@@ -22,9 +26,11 @@ export class AdminService {
     }
 
     async sendMagicLink(email: string) {
+        const requestId = this.requestContext.getRequestId() || 'N/A';
         const adminEmail = this.configService.get('appConfig.adminEmail');
 
         if (email !== adminEmail) {
+            this.logger.log(`[${requestId}] Admin login attempt for ${email} failed.`)
             throw new UnauthorizedException('Unauthorized email');
         }
 
@@ -32,20 +38,25 @@ export class AdminService {
         const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
         this.magicTokens.set(token, { email, expiresAt });
+        this.logger.log(`[${requestId}] Token generation for ${email} successful.`)
 
-        this.eventEmitter.emit('send.email', { email, token } as SendEmailPayload)
+        this.eventEmitter.emit('send.email', { email, token, requestId } as SendEmailPayload)
+        this.logger.log(`[${requestId}] send.email event emitted for ${email}.`)
 
         return successResponse({ message: 'Authentication link has been sent to your email address' });
     }
 
     async verifyMagicLink(token: string) {
+        const requestId = this.requestContext.getRequestId() || 'N/A';
         const tokenData = this.magicTokens.get(token);
 
         if (!tokenData) {
-            throw new UnauthorizedException('Invalid or expired token');
+            this.logger.log(`[${requestId}] Token invalid`)
+            throw new UnauthorizedException('Invalid token');
         }
 
         if (new Date() > tokenData.expiresAt) {
+            this.logger.log(`[${requestId}] Token expired.`)
             this.magicTokens.delete(token);
             throw new UnauthorizedException('Token expired');
         }
@@ -56,6 +67,7 @@ export class AdminService {
             { email: tokenData.email, role: 'admin' },
             { expiresIn: '7d' },
         );
+        this.logger.log(`[${requestId}] Access Token generated for admin.`)
 
         return successResponse({ message: 'Authentication Successful', data: { accessToken } });
     }
@@ -76,7 +88,6 @@ export class AdminService {
      */
     @OnEvent('send.email')
     async handleSendEmailEvent(payload: SendEmailPayload) {
-        console.log(payload)
-        this.sendMailProvider.sendEmail(payload.email, payload.token)
+        this.sendMailProvider.sendEmail(payload.email, payload.token, payload.requestId)
     }
 }

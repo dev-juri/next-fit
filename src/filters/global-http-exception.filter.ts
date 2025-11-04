@@ -4,8 +4,10 @@ import {
   ArgumentsHost,
   HttpException,
   HttpStatus,
+  Logger,
 } from '@nestjs/common';
 import { Response } from 'express';
+import { RequestContextService } from '../tracing/request-context.service';
 
 /**
  * Global HTTP exception filter to handle all uncaught exceptions.
@@ -25,6 +27,11 @@ import { Response } from 'express';
  */
 @Catch()
 export class GlobalHttpExceptionFilter implements ExceptionFilter {
+  private readonly logger = new Logger(GlobalHttpExceptionFilter.name);
+
+  constructor(
+    private readonly requestContext: RequestContextService,
+  ) { }
 
   /**
    * Method that handles caught exceptions and sends a formatted error response.
@@ -35,6 +42,8 @@ export class GlobalHttpExceptionFilter implements ExceptionFilter {
   catch(exception: any, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
+
+    const requestId = this.requestContext.getRequestId() || 'N/A';
 
     const status =
       exception instanceof HttpException
@@ -52,6 +61,20 @@ export class GlobalHttpExceptionFilter implements ExceptionFilter {
         : Array.isArray(exceptionResponse?.message)
           ? exceptionResponse.message[0]
           : exceptionResponse?.message || 'An error occurred';
+
+    const logDetails = {
+      requestId,
+      status,
+      message,
+      stack: status >= 500 ? exception.stack : undefined,
+      timestamp: new Date().toISOString(),
+    };
+
+    if (status >= 500) {
+      this.logger.error(`[${requestId}] Unhandled 5xx Error: ${message} | ${JSON.stringify(logDetails)}`);
+    } else {
+      this.logger.warn(`[${requestId}] Client Error (${status}): ${message} | ${JSON.stringify(logDetails)}`);
+    }
 
     return response.status(status).json({ status: 'error', message: message });
   }

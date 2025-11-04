@@ -1,15 +1,16 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class SendMailProvider {
+    private readonly logger = new Logger(SendMailProvider.name)
 
     constructor(
         private readonly configService: ConfigService,
     ) { }
 
-    async sendEmail(email: string, token: string) {
+    async sendEmail(email: string, token: string, requestId: string) {
         const url = this.configService.get('FRONTEND_URL');
         const magicLink = `${url}/admin/auth/verify?token=${token}`;
 
@@ -20,12 +21,13 @@ export class SendMailProvider {
                 pass: this.configService.get('EMAIL_PASSWORD'),
             },
         });
-
-        await transporter.sendMail({
-            from: this.configService.get('EMAIL_USER'),
-            to: email,
-            subject: 'Verify Authentication',
-            html: `
+        try {
+            this.logger.log(`[${requestId}] Sending Magic URL sent to ${email}.`)
+            await transporter.sendMail({
+                from: this.configService.get('EMAIL_USER'),
+                to: email,
+                subject: 'Verify Authentication',
+                html: `
         <h2>Verify Authentication</h2>
         <p>Click the link below to login to your admin dashboard:</p>
         <a href="${magicLink}" style="
@@ -40,6 +42,12 @@ export class SendMailProvider {
         <p>This link will expire in 15 minutes.</p>
         <p>If you didn't request this, please ignore this email.</p>
       `,
-        });
+            });
+
+            this.logger.log(`[${requestId}] Magic URL sent to ${email} successfully.`)
+
+        } catch (err) {
+            this.logger.error(`[${requestId}] Failed to send Magic URL to ${email}.`, err.stack)
+        }
     }
 }
