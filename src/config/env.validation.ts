@@ -9,5 +9,6 @@ export default Joi.object({
     EMAIL_PASSWORD: Joi.string().required(),
     JWT_ACCESS_TOKEN_TTL: Joi.string().required(),
     MONGO_URI: Joi.string().required(),
-    SERP_API_KEY: Joi.string().required()
+    SERP_API_KEY: Joi.string().required(),
+    BACKEND_URL: Joi.string()
 });
