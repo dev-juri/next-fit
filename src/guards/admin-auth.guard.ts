@@ -2,7 +2,7 @@ import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from
 import { AuthType } from '../utils/auth-type.enum';
 import { AccessTokenGuard } from './access-token.guard';
 import { Reflector } from '@nestjs/core';
-import { ADMIN_AUTH_TYPE_KEY } from '../utils/constants';
+import { ADMIN_AUTH_TYPE_KEY, REQUEST_ADMIN_KEY } from '../utils/constants';
 
 @Injectable()
 export class AdminAuthGuard implements CanActivate {
@@ -46,6 +46,15 @@ export class AdminAuthGuard implements CanActivate {
       } catch (err) {
         throw err;
       }
+    }
+
+    if (authTypes && authTypes.includes(AuthType.None)) {
+      return true
+    }
+
+    const request = context.switchToHttp().getRequest();
+    if (!request[REQUEST_ADMIN_KEY]) {
+      return false
     }
 
     return true;

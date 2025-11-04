@@ -34,7 +34,7 @@ export function appCreate(app: INestApplication): string | undefined {
       name: 'JWT',
       description: 'Enter JWT Bearer token',
       in: 'header',
-    })
+    }, 'access-token')
     .addServer(configService.get<string>('appConfig.backendUrl')!)
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);
