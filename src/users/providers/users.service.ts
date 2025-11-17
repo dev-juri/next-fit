@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { ConflictException, Injectable, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { User, UserDocument } from '../schemas/user.schema';
 import { InjectModel } from '@nestjs/mongoose';
@@ -7,10 +7,14 @@ import { LoginUserDto } from '../dto/login-user.dto';
 import * as bcrypt from 'bcrypt'
 import { successResponse } from '../../utils/res-util';
 import { JwtService } from '@nestjs/jwt';
+import { RequestContextService } from '../../tracing/request-context.service';
 
 @Injectable()
 export class UsersService {
+    private readonly logger = new Logger(UsersService.name);
+
     constructor(
+        private readonly requestContextService: RequestContextService,
 
         private readonly jwtService: JwtService,
 

@@ -13,7 +13,7 @@ import {
 @Controller('admin')
 export class AdminController {
     constructor(
-        private readonly adminAuthService: AdminService
+        private readonly adminService: AdminService
     ) { }
 
     @Post('/auth')
@@ -32,7 +32,7 @@ export class AdminController {
     })
     @ApiResponse({ status: 400, description: 'Invalid email format or missing email.' })
     async sendMagicLink(@Body() createMagicLinkDto: CreateMagicLinkDto) {
-        return this.adminAuthService.sendMagicLink(createMagicLinkDto.email);
+        return this.adminService.sendMagicLink(createMagicLinkDto.email);
     }
 
     @Get('/auth/verify')
@@ -54,6 +54,6 @@ export class AdminController {
     })
     @ApiResponse({ status: 401, description: 'Invalid or expired token.' })
     async verifyMagicLink(@Query('token') token: string) {
-        return this.adminAuthService.verifyMagicLink(token);
+        return this.adminService.verifyMagicLink(token);
     }
 }
