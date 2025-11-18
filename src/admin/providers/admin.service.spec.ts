@@ -7,8 +7,7 @@ import { SendMailProvider } from './send-mail.provider';
 import * as crypto from 'crypto';
 import { UnauthorizedException } from '@nestjs/common';
 import { RequestContextService } from '../../tracing/request-context.service';
-import { IResponse } from '../../../dist/utils/res-util';
-import { successResponse } from '../../utils/res-util';
+import { mockConfigService, mockEventEmitter, mockJwtService, mockRequestContextService, mockSendMailProvider } from '../../../test/__mocks__/service.mock';
 
 jest.mock('../../utils/res-util', () => ({
   successResponse: jest.fn((data) => ({
@@ -27,29 +26,10 @@ describe('AdminAuthService', () => {
   let sendMailProvider: SendMailProvider;
   let requestContextService: RequestContextService;
 
-  const mockJwtService = {
-    sign: jest.fn(),
-    verifyAsync: jest.fn(),
-  };
-
-  const mockConfigService = {
-    get: jest.fn(),
-  };
-
-  const mockEventEmitter = {
-    emit: jest.fn(),
-  };
-
-  const mockSendMailProvider = {};
-
-  const mockRequestContextService = {
-    getRequestId: jest.fn()
-  }
-
   beforeEach(async () => {
     jest.clearAllMocks();
     jest.clearAllTimers();
-    //jest.useFakeTimers();
+    jest.useFakeTimers({ legacyFakeTimers: true });
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -73,7 +53,8 @@ describe('AdminAuthService', () => {
         {
           provide: RequestContextService,
           useValue: mockRequestContextService
-        }],
+        },
+      ],
     }).compile();
 
     service = module.get<AdminService>(AdminService);
