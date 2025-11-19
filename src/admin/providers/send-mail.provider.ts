@@ -12,7 +12,7 @@ export class SendMailProvider {
 
     async sendEmail(email: string, token: string, requestId: string) {
         const url = this.configService.get('FRONTEND_URL');
-        const magicLink = `${url}/admin/auth/verify?token=${token}`;
+        const magicLink = `${url}/admin/verify?token=${token}`;
 
         const transporter = nodemailer.createTransport({
             service: 'gmail',
