@@ -103,6 +103,20 @@ export class JobsController {
         return successResponse({ message: 'Job sources fetched successfully.', data: results });
     }
 
+    @Get('tags')
+    @AdminAuth(AuthType.None)
+    @ApiOperation({
+        summary: 'Get List of Unique Job Tags',
+        description: 'Retrieves all unique job tags from job posts. Results are cached for 1 hour.',
+    })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'List of job tags fetched successfully.',
+    })
+    async fetchJobTags() {
+        return this.jobsService.fetchJobTags();
+    }
+
     @Delete('titles/:id')
     @ApiOperation({
         summary: 'Delete a Job Title',

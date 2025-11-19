@@ -115,7 +115,7 @@ export class JobsService {
         if (!job) {
             throw new NotFoundException('Job title not found')
         }
-        
+
         if (job.lastScrapedAt) {
             const now = new Date();
             const timeSinceLastScrape = now.getTime() - job.lastScrapedAt.getTime();
@@ -221,6 +221,22 @@ export class JobsService {
             data: jobPosts,
             next: nextCursor
         };
+    }
+
+    async fetchJobTags() {
+        const CACHE_KEY = 'job_tags';
+        const CACHE_TTL = 60 * 60 * 24 * 1000; 
+
+        const cachedTags = await this.cacheManager.get<string[]>(CACHE_KEY);
+        if (cachedTags) {
+            return successResponse({ message: "Job tags retrieved", data: { tags: cachedTags } });
+        }
+
+        const tags = await this.jobPostModel.distinct('tag').exec();
+
+        await this.cacheManager.set(CACHE_KEY, tags, CACHE_TTL);
+
+        return successResponse({ message: "Job tags retrieved", data: { tags } });
     }
 
     async incrementJobUsage(key: string, jobsReturned: number, currentUsage: number): Promise<void> {
