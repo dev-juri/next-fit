@@ -115,6 +115,19 @@ export class JobsService {
         if (!job) {
             throw new NotFoundException('Job title not found')
         }
+        
+        if (job.lastScrapedAt) {
+            const now = new Date();
+            const timeSinceLastScrape = now.getTime() - job.lastScrapedAt.getTime();
+            const twentyFourHoursInMs = 24 * 60 * 60 * 1000;
+
+            if (timeSinceLastScrape < twentyFourHoursInMs) {
+                const hoursRemaining = Math.ceil((twentyFourHoursInMs - timeSinceLastScrape) / (60 * 60 * 1000));
+                throw new ForbiddenException(
+                    `This job was scraped recently. Please wait ${hoursRemaining} hour(s) before scraping again.`
+                );
+            }
+        }
 
         const sources = await this.jobSourceModel.find()
         const sourceUrlsString = sources
@@ -128,6 +141,11 @@ export class JobsService {
                 jobTag: job.title
             } as ScrapeJobsPayload
         )
+
+        // Update lastScrapedAt timestamp
+        await this.jobModel.findByIdAndUpdate(scrapeJobsDto.jobId, {
+            lastScrapedAt: new Date()
+        });
 
         return successResponse({ message: "Scraping in progress" })
     }

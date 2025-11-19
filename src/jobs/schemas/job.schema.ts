@@ -17,6 +17,9 @@ export type JobDocument = HydratedDocument<Job>
 export class Job {
     @Prop({ required: true, unique: true })
     title: string;
+
+    @Prop({ required: false })
+    lastScrapedAt?: Date;
 }
 
 export const JobSchema = SchemaFactory.createForClass(Job)
