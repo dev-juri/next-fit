@@ -49,6 +49,17 @@ export class JobsService {
         return successResponse({ message: "Job title added successfully." })
     }
 
+
+    async deleteJobTitle(id: string) {
+        const deletedDocument = await this.jobModel.findByIdAndDelete(id).exec();
+
+        if (!deletedDocument) {
+            throw new NotFoundException(`Job title with ID "${id}" not found.`);
+        }
+
+        return successResponse({ message: "Job title deleted successfully." });
+    }
+
     async createJobSource(createJobSourceDto: CreateJobSourceDto) {
         const existingJobSource = await this.jobSourceModel.findOne({ where: { url: createJobSourceDto.url } })
         if (existingJobSource) {
@@ -59,6 +70,44 @@ export class JobsService {
         await newJobSource.save()
 
         return successResponse({ message: "Job source added successfully." })
+    }
+
+    async deleteJobSource(id: string) {
+
+        const deletedDocument = await this.jobSourceModel.findByIdAndDelete(id).exec();
+
+        if (!deletedDocument) {
+            throw new NotFoundException(`Job source with ID "${id}" not found.`);
+        }
+
+        return successResponse({ message: "Job source deleted successfully." });
+    }
+
+    async fetchJobTitles(cursor?: string, limit: number = 10) {
+        const finalLimit = Math.min(limit, 10);
+
+        let query: any = {};
+        if (cursor) {
+            query = { _id: { $gt: cursor } };
+        }
+
+        const results = await this.jobModel
+            .find(query)
+            .sort({ _id: 1 })
+            .limit(finalLimit + 1)
+            .exec();
+
+        const hasNext = results.length > finalLimit;
+        const items = results.slice(0, finalLimit);
+
+        let nextCursor: string | undefined;
+
+        if (hasNext) {
+            const lastItem = items[items.length - 1];
+            nextCursor = lastItem._id.toString();
+        }
+
+        return successResponse({ message: "Jobs retrieved", data: { jobTitles: items, nextCursor } })
     }
 
     async scrapeJobs(scrapeJobsDto: ScrapeJobsDto) {
@@ -81,6 +130,33 @@ export class JobsService {
         )
 
         return successResponse({ message: "Scraping in progress" })
+    }
+
+    async fetchJobSources(cursor?: string, limit: number = 10) {
+        const defaultLimit = 10;
+        const finalLimit = Math.min(limit, defaultLimit);
+
+        let query: any = {};
+        if (cursor) {
+            query = { _id: { $gt: cursor } };
+        }
+
+        const results = await this.jobSourceModel
+            .find(query)
+            .sort({ _id: 1 })
+            .limit(finalLimit + 1)
+            .exec();
+
+        const hasNext = results.length > finalLimit;
+        const items = results.slice(0, finalLimit);
+
+        let nextCursor: string | undefined;
+
+        if (hasNext) {
+            const lastItem = items[items.length - 1];
+            nextCursor = lastItem._id.toString();
+        }
+        return successResponse({ message: "Job sources retrieved", data: { jobSources: items, nextCursor } })
     }
 
     async fetchJobs(fetchJobsParam: FetchJobsParam, opts: FetchJobsOptions) {

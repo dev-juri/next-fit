@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { JobsService } from './providers/jobs.service';
 import { CreateJobSourceDto } from './dtos/create-job-source.dto';
 import { CreateJobTitleDto } from './dtos/create-job-title.dto';
@@ -20,6 +20,7 @@ import {
     ApiBearerAuth,
     ApiSecurity,
     ApiQuery,
+    ApiParam,
 } from '@nestjs/swagger';
 
 @ApiBearerAuth('access-token')
@@ -31,7 +32,7 @@ export class JobsController {
         private readonly jobsService: JobsService
     ) { }
 
-    @Post('source')
+    @Post('sources')
     @ApiOperation({
         summary: 'Add a New Job Source',
         description: 'Allows an administrator to register a new external website or platform for job tracking.',
@@ -50,7 +51,7 @@ export class JobsController {
         return this.jobsService.createJobSource(createJobSourceDto)
     }
 
-    @Post('title')
+    @Post('titles')
     @ApiOperation({
         summary: 'Add a New Trackable Job Title',
         description: 'Allows an administrator to add a specific job title to the system\'s list of trackable roles.',
@@ -66,6 +67,66 @@ export class JobsController {
     @ApiResponse({ status: 401, description: 'Unauthorized. Missing or invalid Bearer Token.' })
     async addJobTitle(@Body() createJobTitleDto: CreateJobTitleDto) {
         return this.jobsService.createJobTitle(createJobTitleDto)
+    }
+
+    @Get('titles')
+    @ApiOperation({
+        summary: 'Get List of Job Titles (Paginated)',
+        description: 'Retrieves a cursor-paginated list of all trackable job titles.',
+    })
+    @ApiQuery({ name: 'cursor', required: false, type: String, description: 'The cursor for the next page.' })
+    @ApiQuery({ name: 'limit', required: false, type: Number, description: 'The maximum number of items to return (max 10).' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'List of job titles fetched successfully.',
+    })
+    @ApiResponse({ status: 401, description: 'Unauthorized.' })
+    async fetchJobTitles(@Query() { cursor, limit }: FetchJobsParam) {
+        const results = await this.jobsService.fetchJobTitles(cursor, limit);
+        return successResponse({ message: 'Job titles fetched successfully.', data: results });
+    }
+
+    @Get('sources')
+    @ApiOperation({
+        summary: 'Get List of Job Sources (Paginated)',
+        description: 'Retrieves a cursor-paginated list of all registered job sources/websites.',
+    })
+    @ApiQuery({ name: 'cursor', required: false, type: String, description: 'The cursor for the next page.' })
+    @ApiQuery({ name: 'limit', required: false, type: Number, description: 'The maximum number of items to return (max 10).' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'List of job sources fetched successfully.',
+    })
+    @ApiResponse({ status: 401, description: 'Unauthorized.' })
+    async fetchJobSources(@Query() { cursor, limit }: FetchJobsParam) {
+        const results = await this.jobsService.fetchJobSources(cursor, limit);
+        return successResponse({ message: 'Job sources fetched successfully.', data: results });
+    }
+
+    @Delete('titles/:id')
+    @ApiOperation({
+        summary: 'Delete a Job Title',
+        description: 'Permanently removes a trackable job title by its ID.',
+    })
+    @ApiParam({ name: 'id', description: 'The unique ID of the job title.', type: String })
+    @ApiResponse({ status: 200, description: 'Job title deleted successfully.' })
+    @ApiResponse({ status: 401, description: 'Unauthorized.' })
+    @ApiResponse({ status: 404, description: 'Job title not found.' })
+    async deleteJobTitle(@Param('id') id: string) {
+        return this.jobsService.deleteJobTitle(id);
+    }
+
+    @Delete('sources/:id')
+    @ApiOperation({
+        summary: 'Delete a Job Source',
+        description: 'Permanently removes a registered job source by its ID.',
+    })
+    @ApiParam({ name: 'id', description: 'The unique ID of the job source.', type: String })
+    @ApiResponse({ status: 200, description: 'Job source deleted successfully.' })
+    @ApiResponse({ status: 401, description: 'Unauthorized.' })
+    @ApiResponse({ status: 404, description: 'Job source not found.' })
+    async deleteJobSource(@Param('id') id: string) {
+        return this.jobsService.deleteJobSource(id);
     }
 
     @Post('scrape')
