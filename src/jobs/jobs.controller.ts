@@ -71,7 +71,7 @@ export class JobsController {
 
     @Get('titles')
     @ApiOperation({
-        summary: 'Get List of Job Titles (Paginated)',
+        summary: 'Get List of Job Titles',
         description: 'Retrieves a cursor-paginated list of all trackable job titles.',
     })
     @ApiQuery({ name: 'cursor', required: false, type: String, description: 'The cursor for the next page.' })
@@ -81,8 +81,8 @@ export class JobsController {
         description: 'List of job titles fetched successfully.',
     })
     @ApiResponse({ status: 401, description: 'Unauthorized.' })
-    async fetchJobTitles(@Query() { cursor, limit }: FetchJobsParam) {
-        const results = await this.jobsService.fetchJobTitles(cursor, limit);
+    async fetchJobTitles() {
+        const results = await this.jobsService.fetchJobTitles();
         return successResponse({ message: 'Job titles fetched successfully.', data: results });
     }
 
