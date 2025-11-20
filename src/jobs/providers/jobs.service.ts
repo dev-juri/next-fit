@@ -206,7 +206,11 @@ export class JobsService {
     async fetchJobTags() {
         const result = await this.fetchJobTitles()
 
-        return successResponse({ message: "Job tags retrieved", data: { tags: result.data.jobTitles } });
+        const jobTitlesArray = result.data.jobTitles;
+
+        const tags = jobTitlesArray.map(jobTitle => jobTitle.title);
+
+        return successResponse({ message: "Job tags retrieved", data: { tags } });
     }
 
     async incrementJobUsage(key: string, jobsReturned: number, currentUsage: number): Promise<void> {
