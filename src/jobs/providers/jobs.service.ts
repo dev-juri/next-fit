@@ -83,31 +83,11 @@ export class JobsService {
         return successResponse({ message: "Job source deleted successfully." });
     }
 
-    async fetchJobTitles(cursor?: string, limit: number = 10) {
-        const finalLimit = Math.min(limit, 10);
+    async fetchJobTitles() {
 
-        let query: any = {};
-        if (cursor) {
-            query = { _id: { $gt: cursor } };
-        }
+        const results = await this.jobModel.find()
 
-        const results = await this.jobModel
-            .find(query)
-            .sort({ _id: 1 })
-            .limit(finalLimit + 1)
-            .exec();
-
-        const hasNext = results.length > finalLimit;
-        const items = results.slice(0, finalLimit);
-
-        let nextCursor: string | undefined;
-
-        if (hasNext) {
-            const lastItem = items[items.length - 1];
-            nextCursor = lastItem._id.toString();
-        }
-
-        return successResponse({ message: "Jobs retrieved", data: { jobTitles: items, nextCursor } })
+        return successResponse({ message: "Jobs retrieved", data: { jobTitles: results } })
     }
 
     async scrapeJobs(scrapeJobsDto: ScrapeJobsDto) {
@@ -224,19 +204,9 @@ export class JobsService {
     }
 
     async fetchJobTags() {
-        const CACHE_KEY = 'job_tags';
-        const CACHE_TTL = 60 * 60 * 24 * 1000; 
+        const result = await this.fetchJobTitles()
 
-        const cachedTags = await this.cacheManager.get<string[]>(CACHE_KEY);
-        if (cachedTags) {
-            return successResponse({ message: "Job tags retrieved", data: { tags: cachedTags } });
-        }
-
-        const tags = await this.jobPostModel.distinct('tag').exec();
-
-        await this.cacheManager.set(CACHE_KEY, tags, CACHE_TTL);
-
-        return successResponse({ message: "Job tags retrieved", data: { tags } });
+        return successResponse({ message: "Job tags retrieved", data: { tags: result.data.jobTitles } });
     }
 
     async incrementJobUsage(key: string, jobsReturned: number, currentUsage: number): Promise<void> {
