@@ -74,8 +74,6 @@ export class JobsController {
         summary: 'Get List of Job Titles',
         description: 'Retrieves a cursor-paginated list of all trackable job titles.',
     })
-    @ApiQuery({ name: 'cursor', required: false, type: String, description: 'The cursor for the next page.' })
-    @ApiQuery({ name: 'limit', required: false, type: Number, description: 'The maximum number of items to return (max 10).' })
     @ApiResponse({
         status: HttpStatus.OK,
         description: 'List of job titles fetched successfully.',
