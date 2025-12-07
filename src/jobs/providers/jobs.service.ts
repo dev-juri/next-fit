@@ -223,7 +223,11 @@ export class JobsService {
     async initNightlyScrape() {
         console.log('Starting nightly job scraping...');
 
-        const allJobs = await this.jobModel.find();
+        const forthEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000);
+
+        const allJobs = await this.jobModel.find({
+            lastScrape: { $lt: forthEightHoursAgo }
+        });
         const allSources = await this.jobSourceModel.find();
 
         if (allJobs.length === 0) {
@@ -235,7 +239,7 @@ export class JobsService {
             .join(' | ');
 
         const scrapePromises = allJobs.map(job =>
-            this.processSingleJobScrape(job.title, sourceUrlsString, job.title)
+            this.processSingleJobScrape(job._id.toString(), job.title, sourceUrlsString, job.title)
         );
         const scrapeResults = await Promise.all(scrapePromises);
 
@@ -245,6 +249,7 @@ export class JobsService {
     }
 
     private async processSingleJobScrape(
+        jobId: string,
         jobTitle: string,
         sourceUrlsString: string,
         jobTag: string
@@ -262,6 +267,10 @@ export class JobsService {
             const formattedJobPosts = prepareJobPostsForBulkWrite(organicResults, jobTag);
 
             const writeResult = await this.jobPostModel.bulkWrite(formattedJobPosts);
+
+            await this.jobModel.findByIdAndUpdate(jobId, {
+                lastScrape: new Date()
+            });
 
             const savedCount = writeResult.upsertedCount + writeResult.modifiedCount;
             console.log(`Scrape for "${jobTitle}" finished. Upserted ${savedCount} posts.`);
